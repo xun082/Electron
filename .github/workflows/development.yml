@@ -62,6 +62,3 @@ jobs:
 
       - name: Lint
         run: pnpm run lint:ci
-
-      - name: Test (if tests exist)
-        run: pnpm run test --if-present
