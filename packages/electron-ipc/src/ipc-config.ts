@@ -167,29 +167,29 @@ export class IpcConfig {
 
   private setupFFmpegHandlers(): void {
     console.log('Setting up FFmpeg handlers...');
-    
-        // 获取视频信息
-        ipcMain.handle('ffmpeg-get-video-info', async (_, videoPath: string) => {
-          console.log('ffmpeg-get-video-info handler called with:', videoPath);
-          try {
-            const result = await this.ffmpegService.getVideoInfo(videoPath);
-            console.log('Video info retrieved successfully:', result);
-            return result;
-          } catch (error: any) {
-            console.error('Error in ffmpeg-get-video-info:', error);
-            // 返回一个默认的错误响应而不是抛出异常
-            return {
-              error: true,
-              message: `获取视频信息失败: ${error.message || error}`,
-              duration: 0,
-              size: '0 Bytes',
-              bitrate: '0',
-              codec: 'unknown',
-              resolution: '0x0',
-              fps: 0
-            };
-          }
-        });
+
+    // 获取视频信息
+    ipcMain.handle('ffmpeg-get-video-info', async (_, videoPath: string) => {
+      console.log('ffmpeg-get-video-info handler called with:', videoPath);
+      try {
+        const result = await this.ffmpegService.getVideoInfo(videoPath);
+        console.log('Video info retrieved successfully:', result);
+        return result;
+      } catch (error: any) {
+        console.error('Error in ffmpeg-get-video-info:', error);
+        // 返回一个默认的错误响应而不是抛出异常
+        return {
+          error: true,
+          message: `获取视频信息失败: ${error.message || error}`,
+          duration: 0,
+          size: '0 Bytes',
+          bitrate: '0',
+          codec: 'unknown',
+          resolution: '0x0',
+          fps: 0,
+        };
+      }
+    });
 
     // 转换视频
     ipcMain.handle('ffmpeg-convert-video', async (_, options) => {
@@ -201,31 +201,45 @@ export class IpcConfig {
     });
 
     // 生成缩略图
-    ipcMain.handle('ffmpeg-generate-thumbnail', async (_, videoPath: string, outputPath: string, timeOffset: number = 10) => {
-      try {
-        return await this.ffmpegService.generateThumbnail(videoPath, outputPath, timeOffset);
-      } catch (error) {
-        throw new Error(`生成缩略图失败: ${error}`);
-      }
-    });
+    ipcMain.handle(
+      'ffmpeg-generate-thumbnail',
+      async (_, videoPath: string, outputPath: string, timeOffset: number = 10) => {
+        try {
+          return await this.ffmpegService.generateThumbnail(videoPath, outputPath, timeOffset);
+        } catch (error) {
+          throw new Error(`生成缩略图失败: ${error}`);
+        }
+      },
+    );
 
     // 提取音频
-    ipcMain.handle('ffmpeg-extract-audio', async (_, videoPath: string, outputPath: string, format: 'mp3' | 'wav' | 'aac' = 'mp3') => {
-      try {
-        return await this.ffmpegService.extractAudio(videoPath, outputPath, format);
-      } catch (error) {
-        throw new Error(`提取音频失败: ${error}`);
-      }
-    });
+    ipcMain.handle(
+      'ffmpeg-extract-audio',
+      async (_, videoPath: string, outputPath: string, format: 'mp3' | 'wav' | 'aac' = 'mp3') => {
+        try {
+          return await this.ffmpegService.extractAudio(videoPath, outputPath, format);
+        } catch (error) {
+          throw new Error(`提取音频失败: ${error}`);
+        }
+      },
+    );
 
     // 压缩视频
-    ipcMain.handle('ffmpeg-compress-video', async (_, inputPath: string, outputPath: string, quality: 'low' | 'medium' | 'high' = 'medium') => {
-      try {
-        return await this.ffmpegService.compressVideo(inputPath, outputPath, quality);
-      } catch (error) {
-        throw new Error(`压缩视频失败: ${error}`);
-      }
-    });
+    ipcMain.handle(
+      'ffmpeg-compress-video',
+      async (
+        _,
+        inputPath: string,
+        outputPath: string,
+        quality: 'low' | 'medium' | 'high' = 'medium',
+      ) => {
+        try {
+          return await this.ffmpegService.compressVideo(inputPath, outputPath, quality);
+        } catch (error) {
+          throw new Error(`压缩视频失败: ${error}`);
+        }
+      },
+    );
 
     // 合并视频
     ipcMain.handle('ffmpeg-merge-videos', async (_, videoPaths: string[], outputPath: string) => {

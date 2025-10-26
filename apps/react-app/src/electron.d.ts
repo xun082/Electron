@@ -20,7 +20,11 @@ declare global {
       }>;
       convertVideo: (options: any) => Promise<any>;
       getVideoInfo: (path: string) => Promise<any>;
-      generateThumbnail: (videoPath: string, outputPath: string, timeOffset?: number) => Promise<string>;
+      generateThumbnail: (
+        videoPath: string,
+        outputPath: string,
+        timeOffset?: number,
+      ) => Promise<string>;
       extractAudio: (videoPath: string, outputPath: string, format?: string) => Promise<string>;
       compressVideo: (inputPath: string, outputPath: string, quality?: string) => Promise<string>;
       mergeVideos: (videoPaths: string[], outputPath: string) => Promise<string>;
@@ -32,7 +36,11 @@ declare global {
       ffmpeg: {
         convertVideo: (options: any) => Promise<any>;
         getVideoInfo: (path: string) => Promise<any>;
-        generateThumbnail: (videoPath: string, outputPath: string, timeOffset?: number) => Promise<string>;
+        generateThumbnail: (
+          videoPath: string,
+          outputPath: string,
+          timeOffset?: number,
+        ) => Promise<string>;
         extractAudio: (videoPath: string, outputPath: string, format?: string) => Promise<string>;
         compressVideo: (inputPath: string, outputPath: string, quality?: string) => Promise<string>;
         mergeVideos: (videoPaths: string[], outputPath: string) => Promise<string>;

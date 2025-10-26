@@ -49,13 +49,13 @@ const api = {
   ffmpeg: {
     getVideoInfo: (videoPath: string) => ipcRenderer.invoke('ffmpeg-get-video-info', videoPath),
     convertVideo: (options: any) => ipcRenderer.invoke('ffmpeg-convert-video', options),
-    generateThumbnail: (videoPath: string, outputPath: string, timeOffset?: number) => 
+    generateThumbnail: (videoPath: string, outputPath: string, timeOffset?: number) =>
       ipcRenderer.invoke('ffmpeg-generate-thumbnail', videoPath, outputPath, timeOffset),
-    extractAudio: (videoPath: string, outputPath: string, format?: 'mp3' | 'wav' | 'aac') => 
+    extractAudio: (videoPath: string, outputPath: string, format?: 'mp3' | 'wav' | 'aac') =>
       ipcRenderer.invoke('ffmpeg-extract-audio', videoPath, outputPath, format),
-    compressVideo: (inputPath: string, outputPath: string, quality?: 'low' | 'medium' | 'high') => 
+    compressVideo: (inputPath: string, outputPath: string, quality?: 'low' | 'medium' | 'high') =>
       ipcRenderer.invoke('ffmpeg-compress-video', inputPath, outputPath, quality),
-    mergeVideos: (videoPaths: string[], outputPath: string) => 
+    mergeVideos: (videoPaths: string[], outputPath: string) =>
       ipcRenderer.invoke('ffmpeg-merge-videos', videoPaths, outputPath),
     stopProcessing: () => ipcRenderer.invoke('ffmpeg-stop-processing'),
     isProcessing: () => ipcRenderer.invoke('ffmpeg-is-processing'),

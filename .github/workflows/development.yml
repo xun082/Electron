@@ -57,8 +57,11 @@ jobs:
       - name: Type check
         run: pnpm run typecheck
 
+      - name: Format check
+        run: pnpm run format:ci
+
       - name: Lint
-        run: pnpm run lint
+        run: pnpm run lint:ci
 
       - name: Test (if tests exist)
         run: pnpm run test --if-present

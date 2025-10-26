@@ -55,20 +55,21 @@ const FFmpegDemo: React.FC = () => {
 
     try {
       const result = await window.api.openFileDialog();
+
       if (!result.canceled && result.filePaths.length > 0) {
         const filePath = result.filePaths[0];
         setSelectedFile(filePath);
         setError('');
-        
+
         // 获取视频信息
         try {
           const info = await window.api.ffmpeg.getVideoInfo(filePath);
           setVideoInfo(info);
-        } catch (err) {
+        } catch {
           setError('获取视频信息失败');
         }
       }
-    } catch (err) {
+    } catch {
       setError('选择文件失败');
     }
   };
@@ -82,14 +83,14 @@ const FFmpegDemo: React.FC = () => {
       setProgress(null);
 
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_converted.mp4');
-      
+
       await window.api.ffmpeg.convertVideo({
         inputPath: selectedFile,
         outputPath,
         format: 'mp4',
         quality: 'medium',
       });
-    } catch (err) {
+    } catch {
       setError('视频转换失败');
       setIsProcessing(false);
     }
@@ -102,7 +103,7 @@ const FFmpegDemo: React.FC = () => {
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_thumbnail.jpg');
       await window.api.ffmpeg.generateThumbnail(selectedFile, outputPath, 10);
       alert(`缩略图已生成: ${outputPath}`);
-    } catch (err) {
+    } catch {
       setError('生成缩略图失败');
     }
   };
@@ -114,7 +115,7 @@ const FFmpegDemo: React.FC = () => {
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_audio.mp3');
       await window.api.ffmpeg.extractAudio(selectedFile, outputPath, 'mp3');
       alert(`音频已提取: ${outputPath}`);
-    } catch (err) {
+    } catch {
       setError('提取音频失败');
     }
   };
@@ -129,7 +130,7 @@ const FFmpegDemo: React.FC = () => {
 
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_compressed.mp4');
       await window.api.ffmpeg.compressVideo(selectedFile, outputPath, 'medium');
-    } catch (err) {
+    } catch {
       setError('视频压缩失败');
       setIsProcessing(false);
     }
@@ -142,7 +143,7 @@ const FFmpegDemo: React.FC = () => {
       await window.api.ffmpeg.stopProcessing();
       setIsProcessing(false);
       setProgress(null);
-    } catch (err) {
+    } catch {
       setError('停止处理失败');
     }
   };
@@ -172,9 +173,7 @@ const FFmpegDemo: React.FC = () => {
             选择视频文件
           </button>
           {selectedFile && (
-            <p className="mt-2 text-sm text-gray-600">
-              已选择: {selectedFile.split('/').pop()}
-            </p>
+            <p className="mt-2 text-sm text-gray-600">已选择: {selectedFile.split('/').pop()}</p>
           )}
         </div>
 
@@ -203,7 +202,7 @@ const FFmpegDemo: React.FC = () => {
                 <span>速度: {progress.speed}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${progress.percent}%` }}
                 ></div>
@@ -279,4 +278,3 @@ const FFmpegDemo: React.FC = () => {
 };
 
 export default FFmpegDemo;
-
