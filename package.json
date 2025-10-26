@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Monorepo with Electron and React applications",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@9.4.0",
   "author": "example.com",
   "scripts": {
     "build": "turbo run build",
