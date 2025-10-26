@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+import '../electron.d.ts';
+
 interface LogEntry {
   id: string;
   timestamp: string;
@@ -75,6 +77,7 @@ const DebugConsole: React.FC = () => {
     if (isElectron && window.api) {
       try {
         await window.api.toggleDevTools();
+
         // 更新应用状态
         const status = await window.api.getAppStatus();
         setAppStatus(status);
@@ -91,7 +94,9 @@ const DebugConsole: React.FC = () => {
   const formatMemoryUsage = (bytes: number) => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 Bytes';
+
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
     return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
   };
 

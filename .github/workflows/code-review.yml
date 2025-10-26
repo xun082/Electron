@@ -8,6 +8,10 @@ jobs:
   code-review:
     runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
 
     steps:
       - name: Checkout code
@@ -23,21 +27,18 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.4.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install tsx
-        run: pnpm add -D tsx
 
       - name: Run Code Review
         id: review
         env:
           SILICONFLOW_API_KEY: ${{ secrets.SILICONFLOW_API_KEY }}
         run: |
-          # 运行 TypeScript 代码审查工具
-          OUTPUT=$(tsx scripts/code-review.ts ${{ github.event.pull_request.number }} ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          # 直接运行 TypeScript 文件
+          OUTPUT=$(npx tsx scripts/code-review.ts ${{ github.event.pull_request.number }} ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
 
           # 提取报告内容
           REPORT=$(echo "$OUTPUT" | sed -n '/---REPORT_START---/,/---REPORT_END---/p' | sed '1d;$d')

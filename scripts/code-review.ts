@@ -49,28 +49,76 @@ PR 中没有包含需要审查的代码文件
 
   private getChangedFiles(baseSha: string, headSha: string): string[] {
     try {
-      const command = `git diff --name-only ${baseSha} ${headSha}`;
-      const output = execSync(command, { encoding: 'utf-8' });
+      console.log(`🔍 检查 git 状态...`);
+      console.log(
+        `📋 当前分支: ${execSync('git branch --show-current', { encoding: 'utf-8' }).trim()}`,
+      );
+      console.log(`📋 当前提交: ${execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim()}`);
+      console.log(`📋 基础提交: ${baseSha}`);
+      console.log(`📋 头部提交: ${headSha}`);
 
-      return output
-        .split('\n')
-        .filter((file) => file.trim())
-        .filter((file) => {
-          // 只检查 TypeScript 和 JavaScript 文件
-          return /\.(ts|tsx|js|jsx)$/.test(file);
-        });
+      // 首先尝试获取分支与主分支的差异
+      let command: string;
+      let output: string;
+
+      try {
+        // 尝试获取与主分支的差异（包含所有提交）
+        command = `git diff --name-only origin/main...HEAD`;
+        console.log(`🔍 执行命令: ${command}`);
+        output = execSync(command, { encoding: 'utf-8' });
+        console.log(`📋 分支差异输出: ${output}`);
+      } catch (branchError) {
+        console.log(`⚠️ 无法获取分支差异，回退到提交差异`);
+        // 如果无法获取分支差异，回退到原来的方法
+        command = `git diff --name-only ${baseSha} ${headSha}`;
+        console.log(`🔍 执行命令: ${command}`);
+        output = execSync(command, { encoding: 'utf-8' });
+        console.log(`📋 提交差异输出: ${output}`);
+      }
+
+      const allFiles = output.split('\n').filter((file) => file.trim());
+
+      console.log(`📁 所有变更文件: ${allFiles.join(', ')}`);
+
+      const filteredFiles = allFiles.filter((file) => {
+        // 只忽略 pnpm-lock.yaml 文件，其他文件都进行审查
+        if (file === 'pnpm-lock.yaml') {
+          console.log(`🚫 忽略文件: ${file}`);
+          return false;
+        }
+
+        return true; // 审查所有其他文件
+      });
+
+      console.log(`📁 过滤后的文件: ${filteredFiles.join(', ')}`);
+
+      return filteredFiles;
     } catch (error) {
       console.error('获取变更文件失败:', error);
+      console.error('错误详情:', error instanceof Error ? error.message : String(error));
       return [];
     }
   }
 
   private getDiff(baseSha: string, headSha: string): string {
     try {
-      const command = `git diff ${baseSha} ${headSha}`;
-      return execSync(command, { encoding: 'utf-8' });
+      let command: string;
+
+      try {
+        // 首先尝试获取与主分支的差异（包含所有提交）
+        command = `git diff origin/main...HEAD`;
+        console.log(`🔍 获取分支差异: ${command}`);
+        return execSync(command, { encoding: 'utf-8' });
+      } catch (branchError) {
+        console.log(`⚠️ 无法获取分支差异，回退到提交差异`);
+        // 如果无法获取分支差异，回退到原来的方法
+        command = `git diff ${baseSha} ${headSha}`;
+        console.log(`🔍 获取提交差异: ${command}`);
+        return execSync(command, { encoding: 'utf-8' });
+      }
     } catch (error) {
       console.error('获取代码差异失败:', error);
+      console.error('错误详情:', error instanceof Error ? error.message : String(error));
       return '';
     }
   }
@@ -216,7 +264,7 @@ ${diff}
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'deepseek-chat',
+          model: 'deepseek-ai/DeepSeek-R1',
           messages: [
             {
               role: 'system',
@@ -238,13 +286,19 @@ ${diff}
         throw new Error(`API 请求失败: ${response.status} ${response.statusText}\n${errorText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        choices?: Array<{
+          message?: {
+            content?: string;
+          };
+        }>;
+      };
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         throw new Error('API 响应格式错误');
       }
 
-      return data.choices[0].message.content;
+      return data.choices[0].message.content || '';
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`DeepSeek API 调用失败: ${error.message}`);

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "React web application",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -24,7 +25,6 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "tailwindcss": "latest",
-    "typescript": "^5.9.3",
     "vite": "^7.1.12"
   }
 }

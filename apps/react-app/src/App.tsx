@@ -1,5 +1,6 @@
 import React from 'react';
 
+import './electron.d.ts';
 import DebugConsole from './components/DebugConsole';
 import FFmpegDemo from './components/FFmpegDemo';
 

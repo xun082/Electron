@@ -1,86 +1,58 @@
 // Electron 类型定义
-export interface ElectronAPI {
-  ipcRenderer: {
-    send: (channel: string, ...args: any[]) => void;
-    invoke: (channel: string, ...args: any[]) => Promise<any>;
-  };
-}
-
-export interface CustomAPI {
-  getAppInfo: () => {
-    name: string;
-    version: string;
-    author: string;
-  };
-  getSystemInfo: () => {
-    platform: string;
-    arch: string;
-    nodeVersion: string;
-  };
-  sayHello: (name: string) => string;
-  openFileDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>;
-  saveFileDialog: () => Promise<{ canceled: boolean; filePath?: string }>;
-  showNotification: (title: string, body: string) => Promise<void>;
-  minimizeWindow: () => Promise<void>;
-  maximizeWindow: () => Promise<void>;
-  closeWindow: () => Promise<void>;
-  openDevTools: () => Promise<void>;
-  closeDevTools: () => Promise<void>;
-  toggleDevTools: () => Promise<void>;
-  logToConsole: (message: string, level?: 'info' | 'warn' | 'error' | 'debug') => Promise<string>;
-  getAppStatus: () => Promise<{
-    isDev: boolean;
-    platform: string;
-    arch: string;
-    nodeVersion: string;
-    electronVersion: string;
-    memoryUsage: {
-      rss: number;
-      heapTotal: number;
-      heapUsed: number;
-      external: number;
-      arrayBuffers: number;
-    };
-    uptime: number;
-    windowCount: number;
-    isDevToolsOpen: boolean;
-  }>;
-  ffmpeg: {
-    getVideoInfo: (videoPath: string) => Promise<{
-      duration: number;
-      size: string;
-      bitrate: string;
-      codec: string;
-      resolution: string;
-      fps: number;
-    }>;
-    convertVideo: (options: {
-      inputPath: string;
-      outputPath: string;
-      format: 'mp4' | 'avi' | 'mov' | 'webm' | 'gif';
-      quality?: 'low' | 'medium' | 'high';
-      resolution?: string;
-      fps?: number;
-    }) => Promise<string>;
-    generateThumbnail: (videoPath: string, outputPath: string, timeOffset?: number) => Promise<string>;
-    extractAudio: (videoPath: string, outputPath: string, format?: 'mp3' | 'wav' | 'aac') => Promise<string>;
-    compressVideo: (inputPath: string, outputPath: string, quality?: 'low' | 'medium' | 'high') => Promise<string>;
-    mergeVideos: (videoPaths: string[], outputPath: string) => Promise<string>;
-    stopProcessing: () => Promise<void>;
-    isProcessing: () => Promise<boolean>;
-    onProgress: (callback: (progress: { percent: number; time: number; speed: string; eta: string }) => void) => void;
-    onCompleted: (callback: (outputPath: string) => void) => void;
-    onError: (callback: (error: string) => void) => void;
-  };
-  ipcRenderer: {
-    invoke: (channel: string, ...args: any[]) => Promise<any>;
-    send: (channel: string, ...args: any[]) => void;
-  };
-}
-
 declare global {
   interface Window {
-    electron?: ElectronAPI;
-    api?: CustomAPI;
+    electron?: {
+      ipcRenderer: {
+        invoke: (channel: string, ...args: any[]) => Promise<any>;
+        on: (channel: string, listener: (...args: any[]) => void) => void;
+        removeListener: (channel: string, listener: (...args: any[]) => void) => void;
+      };
+    };
+    api?: {
+      openFileDialog: () => Promise<{ canceled: boolean; filePaths: string[] }>;
+      showNotification: (title: string, body: string) => void;
+      minimizeWindow: () => void;
+      maximizeWindow: () => void;
+      closeWindow: () => void;
+      getSystemInfo: () => Promise<{
+        platform: string;
+        arch: string;
+      }>;
+      convertVideo: (options: any) => Promise<any>;
+      getVideoInfo: (path: string) => Promise<any>;
+      generateThumbnail: (
+        videoPath: string,
+        outputPath: string,
+        timeOffset?: number,
+      ) => Promise<string>;
+      extractAudio: (videoPath: string, outputPath: string, format?: string) => Promise<string>;
+      compressVideo: (inputPath: string, outputPath: string, quality?: string) => Promise<string>;
+      mergeVideos: (videoPaths: string[], outputPath: string) => Promise<string>;
+      // 调试控制台相关方法
+      getAppStatus: () => Promise<any>;
+      logToConsole: (message: string, level?: string) => void;
+      toggleDevTools: () => void;
+      // FFmpeg 相关方法
+      ffmpeg: {
+        convertVideo: (options: any) => Promise<any>;
+        getVideoInfo: (path: string) => Promise<any>;
+        generateThumbnail: (
+          videoPath: string,
+          outputPath: string,
+          timeOffset?: number,
+        ) => Promise<string>;
+        extractAudio: (videoPath: string, outputPath: string, format?: string) => Promise<string>;
+        compressVideo: (inputPath: string, outputPath: string, quality?: string) => Promise<string>;
+        mergeVideos: (videoPaths: string[], outputPath: string) => Promise<string>;
+        stopProcessing: () => void;
+        on: (event: string, callback: (data: any) => void) => void;
+        off: (event: string, callback: (data: any) => void) => void;
+        onProgress: (callback: (progressData: any) => void) => void;
+        onCompleted: (callback: (path: any) => void) => void;
+        onError: (callback: (errorMessage: any) => void) => void;
+      };
+    };
   }
 }
+
+export {};
