@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+import '../electron.d.ts';
+
 interface LogEntry {
   id: string;
   timestamp: string;

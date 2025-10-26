@@ -2,13 +2,7 @@ import ffmpeg from 'fluent-ffmpeg';
 import ffmpegPath from 'ffmpeg-static';
 // @ts-ignore
 import ffprobePath from 'ffprobe-static';
-import { join } from 'path';
-import { app } from 'electron';
 import { EventEmitter } from 'events';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 // 设置 FFmpeg 和 FFprobe 路径
 console.log('Setting up FFmpeg paths...');

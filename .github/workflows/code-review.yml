@@ -28,9 +28,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install tsx
-        run: pnpm add -D tsx
-
       - name: Run Code Review
         id: review
         env:

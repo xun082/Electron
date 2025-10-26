@@ -238,13 +238,19 @@ ${diff}
         throw new Error(`API 请求失败: ${response.status} ${response.statusText}\n${errorText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        choices?: Array<{
+          message?: {
+            content?: string;
+          };
+        }>;
+      };
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         throw new Error('API 响应格式错误');
       }
 
-      return data.choices[0].message.content;
+      return data.choices[0].message.content || '';
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`DeepSeek API 调用失败: ${error.message}`);

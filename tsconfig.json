@@ -16,8 +16,20 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "outDir": "./dist"
   },
-  "include": ["apps/**/*"],
-  "exclude": ["node_modules", "dist", "out", ".turbo"]
+  "include": [
+    "apps/**/*",
+    "packages/**/*",
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "out",
+    ".turbo",
+    "**/*.d.ts"
+  ]
 }

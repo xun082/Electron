@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+import '../electron.d.ts';
+
 interface VideoInfo {
   duration: number;
   size: string;
