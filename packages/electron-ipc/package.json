@@ -1,0 +1,21 @@
+{
+  "name": "@monorepo/electron-ipc",
+  "version": "1.0.0",
+  "description": "Electron IPC communication utilities",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "electron": "^38.4.0",
+    "@monorepo/electron-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "monorepo",
+  "version": "1.0.0",
+  "description": "Monorepo with Electron and React applications",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "author": "example.com",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "format": "prettier --write .",
+    "electron:dev": "turbo run dev --filter=@monorepo/react-app && turbo run dev --filter=my-electron-app",
+    "electron:build": "turbo run build --filter=@monorepo/react-app && turbo run build --filter=my-electron-app",
+    "build:electron": "cd apps/electron-app && npm run build:win && npm run build:mac",
+    "react:dev": "turbo run dev --filter=@monorepo/react-app",
+    "react:build": "turbo run build --filter=@monorepo/react-app"
+  },
+  "devDependencies": {
+    "@electron-toolkit/utils": "^4.0.0",
+    "@tailwindcss/postcss": "^4.1.16",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "autoprefixer": "^10.4.21",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "tsx": "^4.7.0",
+    "turbo": "^2.5.8"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@types/fluent-ffmpeg": "^2.1.28",
+    "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0",
+    "fluent-ffmpeg": "^2.1.3"
+  }
+}

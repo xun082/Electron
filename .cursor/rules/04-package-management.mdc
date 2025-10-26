@@ -1,0 +1,64 @@
+# 包管理规范
+
+## pnpm 使用
+
+### 安装依赖
+
+```bash
+# 安装依赖
+pnpm install
+
+# 添加依赖到根目录
+pnpm add <package-name>
+
+# 添加依赖到特定工作区
+pnpm add <package-name> --filter <workspace-name>
+
+# 添加开发依赖
+pnpm add -D <package-name>
+```
+
+### 工作区管理
+
+- 根目录的 `package.json` 管理全局依赖
+- 各工作区管理自己的特定依赖
+- 使用 `workspace:*` 引用内部包
+
+### 代码示例
+
+```json
+// 根目录 package.json
+{
+  "name": "monorepo",
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
+
+// 工作区 package.json
+{
+  "dependencies": {
+    "@monorepo/electron-core": "workspace:*",
+    "@monorepo/electron-ipc": "workspace:*"
+  }
+}
+```
+
+## 脚本管理
+
+### 常用脚本
+
+```json
+{
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write .",
+    "clean": "turbo run clean"
+  }
+}
+```

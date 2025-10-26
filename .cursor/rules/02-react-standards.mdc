@@ -1,0 +1,87 @@
+# React 开发规范
+
+## 组件开发
+
+### 组件结构
+
+- 使用函数组件和 React Hooks
+- 组件文件使用 `.tsx` 扩展名
+- 组件名使用 PascalCase 命名
+
+### 代码示例
+
+```typescript
+// 组件接口定义
+interface ComponentProps {
+  title: string;
+  onAction?: () => void;
+  children?: React.ReactNode;
+}
+
+// 组件实现
+function MyComponent({ title, onAction, children }: ComponentProps): React.JSX.Element {
+  const [state, setState] = useState<string>('');
+
+  const handleClick = () => {
+    onAction?.();
+  };
+
+  return (
+    <div className="component-container">
+      <h2>{title}</h2>
+      {children}
+      <button onClick={handleClick}>操作</button>
+    </div>
+  );
+}
+```
+
+## 状态管理
+
+### 状态管理原则
+
+- 优先使用本地状态 (useState)
+- 复杂状态使用 useReducer
+- 避免过度使用全局状态
+
+## 样式规范
+
+### Tailwind CSS 使用
+
+- 优先使用 Tailwind CSS 类名
+- 避免内联样式
+- 保持类名的一致性
+
+### 代码示例
+
+```typescript
+<div className="min-h-screen bg-gray-100 flex items-center justify-center">
+  <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+    <h1 className="text-3xl font-bold text-gray-800 mb-4">标题</h1>
+    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+      按钮
+    </button>
+  </div>
+</div>
+```
+
+## 性能优化
+
+### 渲染优化
+
+- 避免在渲染中创建对象和函数
+- 避免过度优化，优先保证代码可读性
+
+### 代码示例
+
+```typescript
+// 简单的组件
+const UserCard = ({ user }: { user: User }) => {
+  return (
+    <div className="user-card">
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+    </div>
+  );
+};
+```

@@ -1,0 +1,79 @@
+# TypeScript 开发规范
+
+## 类型定义
+
+### 基础类型使用
+
+- 优先使用 TypeScript 内置类型
+- 避免使用 `any`，使用 `unknown` 或具体类型
+- 使用联合类型而非枚举
+
+### 接口定义
+
+- 接口名使用 PascalCase
+- 使用描述性的接口名
+- 接口应该尽可能具体和严格
+
+### 代码示例
+
+```typescript
+// 接口定义
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+// 联合类型
+type Status = 'pending' | 'loading' | 'success' | 'error';
+
+// 字面量类型
+const themes = ['light', 'dark'] as const;
+type Theme = (typeof themes)[number];
+```
+
+## 函数类型定义
+
+### 函数签名
+
+- 使用函数类型别名提高可读性
+- 优先使用箭头函数类型
+
+### 代码示例
+
+```typescript
+// 函数类型定义
+type EventHandler<T = Event> = (event: T) => void;
+type AsyncFunction<T, R> = (param: T) => Promise<R>;
+
+// 函数重载
+function processData(data: string): string;
+function processData(data: number): number;
+function processData(data: string | number): string | number {
+  return typeof data === 'string' ? data.toUpperCase() : data * 2;
+}
+```
+
+## 导入规范
+
+### 导入顺序
+
+1. Node.js 内置模块
+2. 第三方库
+3. 内部模块
+4. 类型导入
+
+### 代码示例
+
+```typescript
+import { app, BrowserWindow } from 'electron';
+import { join } from 'path';
+
+import React, { useState, useEffect } from 'react';
+
+import { AppConfig } from '../config/app-config';
+
+import type { User } from '../types/user';
+```

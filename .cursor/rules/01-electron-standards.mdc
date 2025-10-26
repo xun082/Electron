@@ -1,0 +1,51 @@
+# Electron 开发规范
+
+## 主进程开发
+
+### 安全规范
+
+- 始终启用 `contextIsolation: true`
+- 禁用 `nodeIntegration: false`
+- 通过预加载脚本暴露安全的 API
+
+### 代码示例
+
+```typescript
+// 主进程窗口创建
+function createWindow(): void {
+  mainWindow = new BrowserWindow({
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+}
+
+// IPC 处理
+ipcMain.handle('get-system-info', async () => {
+  return {
+    platform: process.platform,
+    arch: process.arch,
+  };
+});
+```
+
+## 预加载脚本
+
+### API 暴露
+
+- 只暴露必要的 API 到渲染进程
+- 使用类型定义确保类型安全
+
+### 代码示例
+
+```typescript
+// 预加载脚本
+contextBridge.exposeInMainWorld('api', {
+  openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
+  showNotification: (title: string, body: string) =>
+    ipcRenderer.invoke('show-notification', { title, body }),
+});
+```

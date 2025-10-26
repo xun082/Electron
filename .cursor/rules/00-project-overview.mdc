@@ -1,0 +1,26 @@
+# 项目概览
+
+## 项目结构
+
+这是一个基于 Electron + React 的 monorepo 项目，使用 pnpm 作为包管理器。
+
+### 主要目录
+
+- `apps/electron-app/` - Electron 主应用
+- `apps/react-app/` - React 前端应用
+- `packages/` - 共享的 TypeScript 包
+
+### 技术栈
+
+- **前端**: React 19, TypeScript, Tailwind CSS, Vite
+- **桌面**: Electron 38, electron-vite
+- **构建工具**: Turbo, pnpm
+- **代码质量**: ESLint, Prettier
+
+### 开发规范
+
+- 使用 pnpm 作为包管理器
+- 所有代码必须通过 ESLint 检查
+- 使用 Prettier 进行代码格式化
+- 遵循 TypeScript 严格模式
+- 使用中文注释和文档

@@ -1,0 +1,127 @@
+# 代码质量规范
+
+## ESLint 配置
+
+### 规则配置
+
+- 使用 TypeScript ESLint 规则
+- 启用 React Hooks 规则
+- 配置导入顺序规则
+- 使用 Prettier 集成
+
+## Prettier 配置
+
+### 格式化规则
+
+- 使用单引号
+- 2 空格缩进
+- 行尾逗号
+- 100 字符行宽
+
+### 代码示例
+
+```json
+{
+  "singleQuote": true,
+  "tabWidth": 2,
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "endOfLine": "auto"
+}
+```
+
+## 代码风格
+
+### 命名规范
+
+- 变量和函数使用 camelCase
+- 常量使用 UPPER_SNAKE_CASE
+- 组件和类使用 PascalCase
+
+### 代码示例
+
+```typescript
+// 变量命名
+const userName = 'john_doe';
+const MAX_RETRY_COUNT = 3;
+
+// 函数命名
+function calculateTotalPrice(items: Item[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+// 组件命名
+function UserProfile({ userId }: { userId: string }) {
+  return <div>User Profile</div>;
+}
+```
+
+## 注释规范
+
+### 注释类型
+
+- 使用 JSDoc 注释函数和类
+- 使用行内注释解释复杂逻辑
+- 避免无意义的注释
+
+### 代码示例
+
+```typescript
+/**
+ * 计算用户的总积分
+ * @param userId 用户ID
+ * @param includeBonus 是否包含奖励积分
+ * @returns 用户总积分
+ */
+async function calculateUserPoints(userId: string, includeBonus: boolean = false): Promise<number> {
+  const basePoints = await getUserBasePoints(userId);
+
+  // 如果包含奖励积分，需要额外计算
+  if (includeBonus) {
+    const bonusPoints = await getBonusPoints(userId);
+    return basePoints + bonusPoints;
+  }
+
+  return basePoints;
+}
+```
+
+## 错误处理
+
+### 错误类型
+
+- 使用具体的错误类型
+- 提供有意义的错误信息
+- 记录错误日志
+
+### 代码示例
+
+```typescript
+// 自定义错误类
+class ValidationError extends Error {
+  constructor(
+    public field: string,
+    message: string,
+  ) {
+    super(`Validation error in ${field}: ${message}`);
+    this.name = 'ValidationError';
+  }
+}
+
+// 错误处理
+async function processUserData(data: unknown): Promise<User> {
+  try {
+    if (!isValidUserData(data)) {
+      throw new ValidationError('userData', 'Invalid user data format');
+    }
+
+    const user = await createUser(data);
+    return user;
+  } catch (error) {
+    console.error('Failed to process user data:', error);
+    throw error;
+  }
+}
+```

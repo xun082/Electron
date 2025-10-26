@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/macmini/Desktop/electron-app"
+      ],
+      "env": {}
+    },
+    "git": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-git",
+        "--repository",
+        "/Users/macmini/Desktop/electron-app"
+      ],
+      "env": {}
+    }
+  }
+}

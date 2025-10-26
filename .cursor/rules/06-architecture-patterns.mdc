@@ -1,0 +1,213 @@
+# 架构模式规范
+
+## Monorepo 架构
+
+### 包依赖关系
+
+- 根目录管理全局依赖和脚本
+- 应用包 (`apps/`) 依赖共享包 (`packages/`)
+- 共享包之间可以相互依赖
+- 避免循环依赖
+
+### 代码示例
+
+```
+monorepo/
+├── apps/
+│   ├── electron-app/          # 依赖 electron-core, electron-ipc, electron-window
+│   └── react-app/             # 独立的前端应用
+├── packages/
+│   ├── electron-core/         # 核心功能，无依赖
+│   ├── electron-ipc/          # IPC 通信，依赖 electron-core
+│   └── electron-window/       # 窗口管理，依赖 electron-core
+└── package.json               # 全局配置
+```
+
+## 分层架构
+
+### 应用层 (Application Layer)
+
+- 处理用户交互
+- 协调不同服务
+- 管理应用状态
+
+### 服务层 (Service Layer)
+
+- 业务逻辑处理
+- 数据转换
+- 外部服务集成
+
+### 数据层 (Data Layer)
+
+- 数据持久化
+- 缓存管理
+- 数据访问抽象
+
+### 代码示例
+
+```typescript
+// 应用层
+class UserController {
+  constructor(private userService: UserService) {}
+
+  async createUser(userData: CreateUserRequest): Promise<UserResponse> {
+    try {
+      const user = await this.userService.createUser(userData);
+      return this.mapToResponse(user);
+    } catch (error) {
+      throw new ControllerError('Failed to create user', error);
+    }
+  }
+
+  private mapToResponse(user: User): UserResponse {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
+  }
+}
+
+// 服务层
+class UserService {
+  constructor(private userRepository: UserRepository) {}
+
+  async createUser(userData: CreateUserRequest): Promise<User> {
+    const user = new User({
+      name: userData.name,
+      email: userData.email,
+    });
+
+    return await this.userRepository.save(user);
+  }
+}
+
+// 数据层
+class UserRepository {
+  async save(user: User): Promise<User> {
+    // 数据库操作
+    return user;
+  }
+}
+```
+
+## 设计模式
+
+### 工厂模式
+
+- 用于创建复杂对象
+- 封装对象创建逻辑
+
+### 代码示例
+
+```typescript
+// 窗口工厂
+class WindowFactory {
+  static createWindow(type: 'main' | 'settings'): Window {
+    switch (type) {
+      case 'main':
+        return new MainWindow();
+      case 'settings':
+        return new SettingsWindow();
+      default:
+        throw new Error(`Unknown window type: ${type}`);
+    }
+  }
+}
+```
+
+### 单例模式
+
+- 确保类只有一个实例
+- 提供全局访问点
+
+### 代码示例
+
+```typescript
+class AppConfig {
+  private static instance: AppConfig;
+  private config: Record<string, any> = {};
+
+  private constructor() {
+    // 私有构造函数
+  }
+
+  static getInstance(): AppConfig {
+    if (!AppConfig.instance) {
+      AppConfig.instance = new AppConfig();
+    }
+    return AppConfig.instance;
+  }
+
+  set(key: string, value: any): void {
+    this.config[key] = value;
+  }
+
+  get(key: string): any {
+    return this.config[key];
+  }
+}
+```
+
+### 观察者模式
+
+- 处理组件间通信
+- 支持事件订阅和取消订阅
+
+### 代码示例
+
+```typescript
+class EventEmitter {
+  private listeners = new Map<string, Function[]>();
+
+  on(event: string, listener: Function): void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    this.listeners.get(event)!.push(listener);
+  }
+
+  emit(event: string, data: any): void {
+    const eventListeners = this.listeners.get(event);
+    if (eventListeners) {
+      eventListeners.forEach((listener) => listener(data));
+    }
+  }
+}
+```
+
+## 模块化设计
+
+### 模块职责
+
+- 每个模块有明确的职责
+- 模块间通过接口通信
+- 避免紧耦合
+
+### 代码示例
+
+```typescript
+// 模块接口
+interface IUserModule {
+  createUser(userData: CreateUserRequest): Promise<User>;
+  getUser(id: string): Promise<User>;
+  updateUser(id: string, userData: UpdateUserRequest): Promise<User>;
+}
+
+// 模块实现
+class UserModule implements IUserModule {
+  constructor(private userService: UserService) {}
+
+  async createUser(userData: CreateUserRequest): Promise<User> {
+    return await this.userService.createUser(userData);
+  }
+
+  async getUser(id: string): Promise<User> {
+    return await this.userService.getUser(id);
+  }
+
+  async updateUser(id: string, userData: UpdateUserRequest): Promise<User> {
+    return await this.userService.updateUser(id, userData);
+  }
+}
+```
