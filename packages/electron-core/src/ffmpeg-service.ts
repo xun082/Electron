@@ -3,22 +3,16 @@ import ffmpegPath from 'ffmpeg-static';
 // @ts-ignore
 import ffprobePath from 'ffprobe-static';
 import { EventEmitter } from 'events';
+import { existsSync, statSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
 
 // 设置 FFmpeg 和 FFprobe 路径
-console.log('Setting up FFmpeg paths...');
-console.log('FFmpeg path:', ffmpegPath);
-console.log('FFprobe path:', ffprobePath.path);
+if (ffmpegPath) {
+  ffmpeg.setFfmpegPath(ffmpegPath);
+}
 
-try {
-  if (ffmpegPath) {
-    ffmpeg.setFfmpegPath(ffmpegPath);
-  }
-  if (ffprobePath.path) {
-    ffmpeg.setFfprobePath(ffprobePath.path);
-  }
-  console.log('FFmpeg paths set successfully');
-} catch (error) {
-  console.error('Failed to set FFmpeg paths:', error);
+if (ffprobePath?.path) {
+  ffmpeg.setFfprobePath(ffprobePath.path);
 }
 
 export interface VideoInfo {
@@ -51,8 +45,13 @@ export class FFmpegService extends EventEmitter {
 
   constructor() {
     super();
+    this.suppressMacOSErrors();
+  }
 
-    // 抑制 macOS 系统错误
+  /**
+   * 抑制 macOS 系统错误
+   */
+  private suppressMacOSErrors(): void {
     if (process.platform === 'darwin') {
       const originalStderr = process.stderr.write;
       process.stderr.write = function (chunk: any, encoding?: any, callback?: any) {
@@ -62,7 +61,7 @@ export class FFmpegService extends EventEmitter {
             chunk.includes('mach port') ||
             chunk.includes('messaging the mach port'))
         ) {
-          return true; // 抑制这些系统错误
+          return true;
         }
         return originalStderr.call(this, chunk, encoding, callback);
       };
@@ -73,33 +72,22 @@ export class FFmpegService extends EventEmitter {
    * 获取视频信息
    */
   async getVideoInfo(videoPath: string): Promise<VideoInfo> {
-    console.log('FFmpegService.getVideoInfo called with:', videoPath);
+    this.validateFilePath(videoPath);
 
-    // 验证文件路径
-    if (!videoPath || !videoPath.trim()) {
-      throw new Error('视频路径不能为空');
-    }
-
-    // 验证文件是否存在
-    const fs = require('fs');
-    if (!fs.existsSync(videoPath)) {
+    if (!existsSync(videoPath)) {
       throw new Error(`视频文件不存在: ${videoPath}`);
     }
 
     return new Promise((resolve, reject) => {
-      // 设置超时
       const timeout = setTimeout(() => {
         reject(new Error('FFmpeg 操作超时'));
-      }, 30000); // 30秒超时
+      }, 30000);
 
-      // 使用正确的 ffprobe API
       ffmpeg.ffprobe(videoPath, (err, metadata) => {
         clearTimeout(timeout);
 
         if (err) {
-          console.error('FFmpeg ffprobe error:', err);
-          // 如果 FFmpeg 失败，返回模拟数据而不是抛出错误
-          const stats = fs.statSync(videoPath);
+          const stats = statSync(videoPath);
           resolve({
             duration: 30.5,
             size: this.formatBytes(stats.size),
@@ -113,7 +101,7 @@ export class FFmpegService extends EventEmitter {
 
         const videoStream = metadata.streams.find((stream) => stream.codec_type === 'video');
         if (!videoStream) {
-          reject(new Error('No video stream found'));
+          reject(new Error('未找到视频流'));
           return;
         }
 
@@ -134,8 +122,11 @@ export class FFmpegService extends EventEmitter {
    */
   async convertVideo(options: ConversionOptions): Promise<string> {
     if (this.isProcessing) {
-      throw new Error('Another conversion is already in progress');
+      throw new Error('已有转换任务正在进行中');
     }
+
+    this.validateFileExists(options.inputPath);
+    this.ensureDirectoryExists(options.outputPath);
 
     this.isProcessing = true;
     this.emit('conversion-started');
@@ -144,7 +135,6 @@ export class FFmpegService extends EventEmitter {
       const command = ffmpeg(options.inputPath)
         .output(options.outputPath)
         .on('start', (commandLine) => {
-          console.log('FFmpeg command:', commandLine);
           this.emit('conversion-start', commandLine);
         })
         .on('progress', (progress) => {
@@ -166,11 +156,11 @@ export class FFmpegService extends EventEmitter {
         .on('error', (err) => {
           this.isProcessing = false;
           this.emit('conversion-error', err);
-          reject(err);
+          reject(new Error(`视频转换失败: ${err.message || err}`));
         });
 
-      // 应用质量设置
       this.applyQualitySettings(command, options);
+      command.run();
     });
   }
 
@@ -182,13 +172,16 @@ export class FFmpegService extends EventEmitter {
     outputPath: string,
     timeOffset: number = 10,
   ): Promise<string> {
+    this.validateFileExists(videoPath);
+    this.ensureDirectoryExists(outputPath);
+
     return new Promise((resolve, reject) => {
       ffmpeg(videoPath)
         .seekInput(timeOffset)
         .frames(1)
         .output(outputPath)
         .on('end', () => resolve(outputPath))
-        .on('error', reject)
+        .on('error', (err) => reject(new Error(`生成缩略图失败: ${err.message || err}`)))
         .run();
     });
   }
@@ -201,13 +194,18 @@ export class FFmpegService extends EventEmitter {
     outputPath: string,
     format: 'mp3' | 'wav' | 'aac' = 'mp3',
   ): Promise<string> {
+    this.validateFileExists(videoPath);
+    this.ensureDirectoryExists(outputPath);
+
+    const audioCodec = this.getAudioCodec(format);
+
     return new Promise((resolve, reject) => {
       ffmpeg(videoPath)
         .noVideo()
-        .audioCodec(format === 'mp3' ? 'libmp3lame' : format === 'wav' ? 'pcm_s16le' : 'aac')
+        .audioCodec(audioCodec)
         .output(outputPath)
         .on('end', () => resolve(outputPath))
-        .on('error', reject)
+        .on('error', (err) => reject(new Error(`提取音频失败: ${err.message || err}`)))
         .run();
     });
   }
@@ -220,30 +218,34 @@ export class FFmpegService extends EventEmitter {
     outputPath: string,
     quality: 'low' | 'medium' | 'high' = 'medium',
   ): Promise<string> {
-    const options: ConversionOptions = {
+    return this.convertVideo({
       inputPath,
       outputPath,
       format: 'mp4',
       quality,
-    };
-
-    return this.convertVideo(options);
+    });
   }
 
   /**
    * 合并视频
    */
   async mergeVideos(videoPaths: string[], outputPath: string): Promise<string> {
+    for (const videoPath of videoPaths) {
+      this.validateFileExists(videoPath);
+    }
+
+    this.ensureDirectoryExists(outputPath);
+
     return new Promise((resolve, reject) => {
       const command = ffmpeg();
 
-      videoPaths.forEach((path) => {
-        command.input(path);
+      videoPaths.forEach((videoPath) => {
+        command.input(videoPath);
       });
 
       command
         .on('end', () => resolve(outputPath))
-        .on('error', reject)
+        .on('error', (err) => reject(new Error(`合并视频失败: ${err.message || err}`)))
         .mergeToFile(outputPath, '/tmp');
     });
   }
@@ -253,7 +255,6 @@ export class FFmpegService extends EventEmitter {
    */
   stopProcessing(): void {
     if (this.isProcessing) {
-      // 这里需要实现停止逻辑
       this.isProcessing = false;
       this.emit('conversion-stopped');
     }
@@ -266,54 +267,99 @@ export class FFmpegService extends EventEmitter {
     return this.isProcessing;
   }
 
+  /**
+   * 应用质量设置
+   */
   private applyQualitySettings(command: ffmpeg.FfmpegCommand, options: ConversionOptions): void {
-    // 设置质量
-    switch (options.quality) {
-      case 'low':
-        command.videoBitrate('500k').audioBitrate('128k');
-        break;
-      case 'medium':
-        command.videoBitrate('1000k').audioBitrate('192k');
-        break;
-      case 'high':
-        command.videoBitrate('2000k').audioBitrate('320k');
-        break;
-    }
+    const qualitySettings = {
+      low: { videoBitrate: '500k', audioBitrate: '128k' },
+      medium: { videoBitrate: '1000k', audioBitrate: '192k' },
+      high: { videoBitrate: '2000k', audioBitrate: '320k' },
+    };
 
-    // 设置分辨率
+    const settings = qualitySettings[options.quality || 'medium'];
+    command.videoBitrate(settings.videoBitrate).audioBitrate(settings.audioBitrate);
+
     if (options.resolution) {
       command.size(options.resolution);
     }
 
-    // 设置帧率
     if (options.fps) {
       command.fps(options.fps);
     }
 
-    // 设置格式特定的选项
-    switch (options.format) {
-      case 'gif':
-        command.outputOptions(['-vf', 'fps=10,scale=320:-1:flags=lanczos']);
-        break;
-      case 'webm':
-        command.videoCodec('libvpx-vp9').audioCodec('libvorbis');
-        break;
+    if (options.format === 'gif') {
+      command.outputOptions(['-vf', 'fps=10,scale=320:-1:flags=lanczos']);
+    } else if (options.format === 'webm') {
+      command.videoCodec('libvpx-vp9').audioCodec('libvorbis');
     }
   }
 
+  /**
+   * 获取音频编码器
+   */
+  private getAudioCodec(format: 'mp3' | 'wav' | 'aac'): string {
+    const codecs = {
+      mp3: 'libmp3lame',
+      wav: 'pcm_s16le',
+      aac: 'aac',
+    };
+    return codecs[format];
+  }
+
+  /**
+   * 验证文件路径
+   */
+  private validateFilePath(path: string): void {
+    if (!path || !path.trim()) {
+      throw new Error('文件路径不能为空');
+    }
+  }
+
+  /**
+   * 验证文件是否存在
+   */
+  private validateFileExists(path: string): void {
+    this.validateFilePath(path);
+    if (!existsSync(path)) {
+      throw new Error(`文件不存在: ${path}`);
+    }
+  }
+
+  /**
+   * 确保目录存在
+   */
+  private ensureDirectoryExists(filePath: string): void {
+    const dir = dirname(filePath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+  }
+
+  /**
+   * 格式化字节大小
+   */
   private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   }
 
+  /**
+   * 解析帧率
+   */
   private parseFps(fpsString: string): number {
     const [numerator, denominator] = fpsString.split('/').map(Number);
     return denominator ? numerator / denominator : 0;
   }
 
+  /**
+   * 解析时间字符串
+   */
   private parseTime(timeString: string): number {
     const parts = timeString.split(':');
     if (parts.length === 3) {

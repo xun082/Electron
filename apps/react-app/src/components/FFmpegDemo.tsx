@@ -81,6 +81,7 @@ const FFmpegDemo: React.FC = () => {
       setIsProcessing(true);
       setError('');
       setProgress(null);
+      setOutputPath('');
 
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_converted.mp4');
 
@@ -90,8 +91,8 @@ const FFmpegDemo: React.FC = () => {
         format: 'mp4',
         quality: 'medium',
       });
-    } catch {
-      setError('视频转换失败');
+    } catch (err: any) {
+      setError(err.message || '视频转换失败');
       setIsProcessing(false);
     }
   };
@@ -100,11 +101,16 @@ const FFmpegDemo: React.FC = () => {
     if (!isElectron || !window.api || !selectedFile) return;
 
     try {
+      setError('');
+      setIsProcessing(true);
+
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_thumbnail.jpg');
+
       await window.api.ffmpeg.generateThumbnail(selectedFile, outputPath, 10);
+      setOutputPath(`缩略图已生成: ${outputPath}`);
       alert(`缩略图已生成: ${outputPath}`);
-    } catch {
-      setError('生成缩略图失败');
+    } catch (err: any) {
+      setError(err.message || '生成缩略图失败');
     }
   };
 
@@ -112,11 +118,18 @@ const FFmpegDemo: React.FC = () => {
     if (!isElectron || !window.api || !selectedFile) return;
 
     try {
+      setError('');
+      setIsProcessing(true);
+
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_audio.mp3');
+
       await window.api.ffmpeg.extractAudio(selectedFile, outputPath, 'mp3');
+      setOutputPath(`音频已提取: ${outputPath}`);
+      setIsProcessing(false);
       alert(`音频已提取: ${outputPath}`);
-    } catch {
-      setError('提取音频失败');
+    } catch (err: any) {
+      setError(err.message || '提取音频失败');
+      setIsProcessing(false);
     }
   };
 
@@ -127,11 +140,12 @@ const FFmpegDemo: React.FC = () => {
       setIsProcessing(true);
       setError('');
       setProgress(null);
+      setOutputPath('');
 
       const outputPath = selectedFile.replace(/\.[^/.]+$/, '_compressed.mp4');
       await window.api.ffmpeg.compressVideo(selectedFile, outputPath, 'medium');
-    } catch {
-      setError('视频压缩失败');
+    } catch (err: any) {
+      setError(err.message || '视频压缩失败');
       setIsProcessing(false);
     }
   };
@@ -143,8 +157,9 @@ const FFmpegDemo: React.FC = () => {
       await window.api.ffmpeg.stopProcessing();
       setIsProcessing(false);
       setProgress(null);
-    } catch {
-      setError('停止处理失败');
+      setOutputPath('');
+    } catch (err: any) {
+      setError(err.message || '停止处理失败');
     }
   };
 
@@ -258,18 +273,20 @@ const FFmpegDemo: React.FC = () => {
         )}
 
         {/* 输出路径 */}
-        {outputPath && (
-          <div className="bg-green-50 p-3 rounded border">
-            <h4 className="font-semibold mb-2">✅ 处理完成</h4>
-            <p className="text-sm text-green-700">输出文件: {outputPath}</p>
+        {outputPath && !isProcessing && (
+          <div className="bg-green-50 p-3 rounded border border-green-300">
+            <h4 className="font-semibold mb-2 text-green-700">✅ 处理完成</h4>
+            <p className="text-sm text-green-700 break-all">
+              {outputPath.startsWith('输出文件:') ? outputPath : `输出文件: ${outputPath}`}
+            </p>
           </div>
         )}
 
         {/* 错误信息 */}
         {error && (
-          <div className="bg-red-50 p-3 rounded border">
+          <div className="bg-red-50 p-3 rounded border border-red-300">
             <h4 className="font-semibold mb-2 text-red-700">❌ 错误</h4>
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-red-600 break-all">{error}</p>
           </div>
         )}
       </div>

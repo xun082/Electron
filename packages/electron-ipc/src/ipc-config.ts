@@ -12,28 +12,28 @@ export class IpcConfig {
     this.ffmpegService = new FFmpegService();
   }
 
-  // 更新窗口引用
   updateMainWindow(mainWindow: BrowserWindow | null): void {
     this.mainWindow = mainWindow;
   }
 
   setupHandlers(): void {
-    console.log('IpcConfig.setupHandlers called');
     this.setupFileHandlers();
     this.setupNotificationHandlers();
     this.setupWindowHandlers();
     this.setupDebugHandlers();
     this.setupAppStatusHandlers();
     this.setupFFmpegHandlers();
-    console.log('All IPC handlers registered');
   }
 
   private setupFileHandlers(): void {
-    // 文件操作
     ipcMain.handle('open-file-dialog', async () => {
       const result = await dialog.showOpenDialog(this.mainWindow!, {
         properties: ['openFile'],
         filters: [
+          {
+            name: '视频文件',
+            extensions: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'wmv', 'm4v', 'mpg', 'mpeg'],
+          },
           { name: '所有文件', extensions: ['*'] },
           { name: '文本文件', extensions: ['txt', 'md'] },
           { name: '图片文件', extensions: ['jpg', 'png', 'gif'] },
@@ -42,7 +42,6 @@ export class IpcConfig {
       return result;
     });
 
-    // 保存文件对话框
     ipcMain.handle('save-file-dialog', async () => {
       const result = await dialog.showSaveDialog(this.mainWindow!, {
         filters: [
@@ -56,7 +55,6 @@ export class IpcConfig {
   }
 
   private setupNotificationHandlers(): void {
-    // 显示通知
     ipcMain.handle('show-notification', (_, title, body) => {
       if (Notification.isSupported()) {
         new Notification({
@@ -69,7 +67,6 @@ export class IpcConfig {
   }
 
   private setupWindowHandlers(): void {
-    // 窗口控制
     ipcMain.handle('minimize-window', () => {
       this.mainWindow?.minimize();
     });
@@ -88,7 +85,6 @@ export class IpcConfig {
   }
 
   private setupDebugHandlers(): void {
-    // 调试控制台功能
     ipcMain.handle('open-devtools', () => {
       this.mainWindow?.webContents.openDevTools();
     });
@@ -105,7 +101,6 @@ export class IpcConfig {
       }
     });
 
-    // 日志功能
     ipcMain.handle('log-to-console', (_, message, level = 'info') => {
       const timestamp = new Date().toISOString();
       const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
@@ -129,7 +124,6 @@ export class IpcConfig {
   }
 
   private setupAppStatusHandlers(): void {
-    // 获取应用状态
     ipcMain.handle('get-app-status', () => {
       return {
         isDev: is.dev,
@@ -144,7 +138,6 @@ export class IpcConfig {
       };
     });
 
-    // 基础系统信息
     ipcMain.handle('get-system-info', () => {
       return {
         platform: process.platform,
@@ -155,7 +148,6 @@ export class IpcConfig {
       };
     });
 
-    // 应用信息
     ipcMain.handle('get-app-version', () => {
       return process.env.npm_package_version || '1.0.0';
     });
@@ -166,18 +158,10 @@ export class IpcConfig {
   }
 
   private setupFFmpegHandlers(): void {
-    console.log('Setting up FFmpeg handlers...');
-
-    // 获取视频信息
     ipcMain.handle('ffmpeg-get-video-info', async (_, videoPath: string) => {
-      console.log('ffmpeg-get-video-info handler called with:', videoPath);
       try {
-        const result = await this.ffmpegService.getVideoInfo(videoPath);
-        console.log('Video info retrieved successfully:', result);
-        return result;
+        return await this.ffmpegService.getVideoInfo(videoPath);
       } catch (error: any) {
-        console.error('Error in ffmpeg-get-video-info:', error);
-        // 返回一个默认的错误响应而不是抛出异常
         return {
           error: true,
           message: `获取视频信息失败: ${error.message || error}`,
@@ -191,40 +175,36 @@ export class IpcConfig {
       }
     });
 
-    // 转换视频
     ipcMain.handle('ffmpeg-convert-video', async (_, options) => {
       try {
         return await this.ffmpegService.convertVideo(options);
-      } catch (error) {
-        throw new Error(`视频转换失败: ${error}`);
+      } catch (error: any) {
+        throw new Error(`视频转换失败: ${error.message || error}`);
       }
     });
 
-    // 生成缩略图
     ipcMain.handle(
       'ffmpeg-generate-thumbnail',
       async (_, videoPath: string, outputPath: string, timeOffset: number = 10) => {
         try {
           return await this.ffmpegService.generateThumbnail(videoPath, outputPath, timeOffset);
-        } catch (error) {
-          throw new Error(`生成缩略图失败: ${error}`);
+        } catch (error: any) {
+          throw new Error(`生成缩略图失败: ${error.message || error}`);
         }
       },
     );
 
-    // 提取音频
     ipcMain.handle(
       'ffmpeg-extract-audio',
       async (_, videoPath: string, outputPath: string, format: 'mp3' | 'wav' | 'aac' = 'mp3') => {
         try {
           return await this.ffmpegService.extractAudio(videoPath, outputPath, format);
-        } catch (error) {
-          throw new Error(`提取音频失败: ${error}`);
+        } catch (error: any) {
+          throw new Error(`提取音频失败: ${error.message || error}`);
         }
       },
     );
 
-    // 压缩视频
     ipcMain.handle(
       'ffmpeg-compress-video',
       async (
@@ -235,32 +215,32 @@ export class IpcConfig {
       ) => {
         try {
           return await this.ffmpegService.compressVideo(inputPath, outputPath, quality);
-        } catch (error) {
-          throw new Error(`压缩视频失败: ${error}`);
+        } catch (error: any) {
+          throw new Error(`压缩视频失败: ${error.message || error}`);
         }
       },
     );
 
-    // 合并视频
     ipcMain.handle('ffmpeg-merge-videos', async (_, videoPaths: string[], outputPath: string) => {
       try {
         return await this.ffmpegService.mergeVideos(videoPaths, outputPath);
-      } catch (error) {
-        throw new Error(`合并视频失败: ${error}`);
+      } catch (error: any) {
+        throw new Error(`合并视频失败: ${error.message || error}`);
       }
     });
 
-    // 停止处理
     ipcMain.handle('ffmpeg-stop-processing', () => {
       this.ffmpegService.stopProcessing();
     });
 
-    // 检查处理状态
     ipcMain.handle('ffmpeg-is-processing', () => {
       return this.ffmpegService.isCurrentlyProcessing();
     });
 
-    // 监听 FFmpeg 事件
+    this.setupFFmpegEventListeners();
+  }
+
+  private setupFFmpegEventListeners(): void {
     this.ffmpegService.on('conversion-progress', (progress) => {
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
         this.mainWindow.webContents.send('ffmpeg-progress', progress);
