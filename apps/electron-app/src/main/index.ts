@@ -133,14 +133,11 @@ app.whenReady().then(() => {
   });
 
   // Setup basic IPC handlers
-  ipcMain.on('ping', () => console.log('pong'));
+  ipcMain.on('ping', () => {});
 
   // 设置 IPC 处理程序（在窗口创建之前）
-  console.log('Setting up IPC handlers...');
-
   const ipcConfig = new IpcConfig();
   ipcConfig.setupHandlers();
-  console.log('IPC handlers setup completed');
 
   // Create the main window
   createWindow();
