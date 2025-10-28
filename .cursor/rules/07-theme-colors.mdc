@@ -1,0 +1,167 @@
+# 主题色规范
+
+## 主题色定义
+
+项目使用波斯蓝（Persian Blue）作为主题色，所有相关的 UI 设计和开发必须使用此主题色系统。
+
+### 颜色变量
+
+```css
+--color-persian-blue-50: #eff2fe;
+--color-persian-blue-100: #e1e8fe;
+--color-persian-blue-200: #c9d3fc;
+--color-persian-blue-300: #a8b6f9;
+--color-persian-blue-400: #858ff4;
+--color-persian-blue-500: #686bec;
+--color-persian-blue-600: #463ddd;
+--color-persian-blue-700: #473dc5;
+--color-persian-blue-800: #3a349f;
+--color-persian-blue-900: #34317e;
+--color-persian-blue-950: #1f1d49;
+```
+
+### Tailwind CSS 配置
+
+在 `tailwind.config.js` 中，主题色已配置为 `primary` 颜色系统：
+
+```typescript
+colors: {
+  primary: {
+    50: '#eff2fe',
+    100: '#e1e8fe',
+    200: '#c9d3fc',
+    300: '#a8b6f9',
+    400: '#858ff4',
+    500: '#686bec',  // 主色调
+    600: '#463ddd',
+    700: '#473dc5',
+    800: '#3a349f',
+    900: '#34317e',
+    950: '#1f1d49',
+  },
+}
+```
+
+## 使用规范
+
+### 颜色使用场景
+
+- **primary-50**: 浅色背景、悬停态背景
+- **primary-100**: 次要浅色背景
+- **primary-200**: 边框、分割线
+- **primary-300**: 禁用状态、次要文本
+- **primary-400**: 辅助元素
+- **primary-500**: **主要按钮、主要操作、品牌色** （默认主色）
+- **primary-600**: 按钮悬停态、重要元素
+- **primary-700**: 按钮激活态、强调元素
+- **primary-800**: 深色文本
+- **primary-900**: 标题、重要文本
+- **primary-950**: 最深色，用于特殊强调
+
+### Tailwind CSS 使用示例
+
+#### 按钮组件
+
+```typescript
+// 主要按钮
+<button className="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors">
+  主要操作
+</button>
+
+// 次要按钮
+<button className="border border-primary-500 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg transition-colors">
+  次要操作
+</button>
+
+// 文本按钮
+<button className="text-primary-600 hover:text-primary-700 hover:underline">
+  文本链接
+</button>
+```
+
+#### 卡片组件
+
+```typescript
+<div className="bg-white border border-primary-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+  <h3 className="text-primary-900 text-xl font-bold mb-2">卡片标题</h3>
+  <p className="text-gray-600 mb-4">卡片内容描述</p>
+  <button className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded">
+    操作按钮
+  </button>
+</div>
+```
+
+#### 表单输入
+
+```typescript
+<input
+  className="border border-primary-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 rounded-lg px-4 py-2 outline-none transition-all"
+  placeholder="输入内容"
+/>
+```
+
+#### 标签和徽章
+
+```typescript
+// 实心标签
+<span className="bg-primary-500 text-white px-3 py-1 rounded-full text-sm">
+  新功能
+</span>
+
+// 轮廓标签
+<span className="border border-primary-500 text-primary-600 px-3 py-1 rounded-full text-sm">
+  标签
+</span>
+
+// 浅色背景标签
+<span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm">
+  提示
+</span>
+```
+
+#### 导航和菜单
+
+```typescript
+<nav className="bg-primary-950 text-white">
+  <a className="text-primary-100 hover:text-white hover:bg-primary-800 px-4 py-2 rounded transition-colors">
+    导航项
+  </a>
+  <a className="bg-primary-700 text-white px-4 py-2 rounded">
+    当前页面
+  </a>
+</nav>
+```
+
+## 强制规范
+
+### 必须遵守
+
+1. **禁止使用其他蓝色系统**：不允许使用 `blue-*` 系列颜色，必须使用 `primary-*`
+2. **保持一致性**：整个项目必须统一使用此主题色系统
+3. **语义化使用**：根据上述场景指南选择合适的色阶
+4. **可访问性**：确保文本与背景有足够的对比度（WCAG AA 标准）
+
+### 推荐做法
+
+1. 主要操作使用 `primary-500` 作为基础色
+2. 悬停效果使用 `primary-600`
+3. 激活/按下效果使用 `primary-700`
+4. 浅色背景使用 `primary-50` 或 `primary-100`
+5. 文本链接使用 `primary-600` 或 `primary-700`
+
+### 禁止做法
+
+1. ❌ 不要使用 `blue-500`、`indigo-500` 等其他蓝色
+2. ❌ 不要直接使用十六进制颜色值代替主题色
+3. ❌ 不要在内联样式中硬编码颜色
+4. ❌ 不要混用多种蓝色系统
+
+## 代码审查检查点
+
+在代码审查时，请检查：
+
+- [ ] 是否所有蓝色元素都使用了 `primary-*` 颜色
+- [ ] 是否有硬编码的蓝色十六进制值
+- [ ] 颜色使用是否符合场景指南
+- [ ] 是否有足够的颜色对比度
+- [ ] 悬停、激活状态是否使用了正确的色阶
